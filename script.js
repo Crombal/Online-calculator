@@ -15,6 +15,58 @@ class Calculator {
         this.currentOperand = this.currentOperand.toString().slice(0, -1)
     }
 
+    changeMode() {
+        if (!document.getElementById('pow')) {
+            let powButton = document.createElement('button')
+            powButton.id = 'pow'
+            powButton.className = 'span-two'
+            powButton.setAttribute('data-extended-operation', '')
+            powButton.innerText = 'pow'
+
+            let sqrtButton = document.createElement('button')
+            sqrtButton.id = 'sqrt'
+            sqrtButton.className = 'span-two'
+            sqrtButton.setAttribute('data-extended-operation', '')
+            sqrtButton.innerText = 'sqrt'
+
+            let currentButton = document.getElementById('1')
+            let parentDiv = document.getElementById('calculator')
+            let newButtons = [powButton, sqrtButton]
+            for (let i = 0; i < newButtons.length; i++) {
+                parentDiv.insertBefore(newButtons[i], currentButton)
+                currentButton = newButtons[i]
+            }
+
+            document.styleSheets[1].insertRule(
+                '.calculator-grid {' +
+                '    display: grid;' +
+                '    justify-content: center;' +
+                '    align-content: center;' +
+                '    min-height: 100vh;' +
+                '    grid-template-columns: repeat(4, 100px);' +
+                '    grid-template-rows: minmax(130px, auto) repeat(6, 85px);' +
+                '}', 0
+            )
+
+            let extendedOperationButtons = document.querySelectorAll('[data-extended-operation]')
+            extendedOperationButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    this.chooseOperation(button.innerText)
+                    this.updateDisplay()
+                })
+            })
+        } else {
+            this.removeElement('pow')
+            this.removeElement('sqrt')
+            document.styleSheets[1].deleteRule(0)
+        }
+    }
+
+    removeElement(id) {
+        let element = document.getElementById(id)
+        return element.parentNode.removeChild(element)
+    }
+
     appendNumber(number) {
         if (number === '.' && this.currentOperand.includes('.')) return
         this.currentOperand = this.currentOperand.toString() + number.toString()
@@ -47,6 +99,12 @@ class Calculator {
                 break
             case '÷':
                 computation = prev / current
+                break
+            case 'pow':
+                computation = Math.pow(prev, current)
+                break
+            case 'sqrt':
+                computation = Math.pow(prev, 1/current)
                 break
             default:
                 return
@@ -90,6 +148,7 @@ const operationButtons = document.querySelectorAll('[data-operation]')
 const equalsButton = document.querySelector('[data-equals]')
 const deleteButton = document.querySelector('[data-delete]')
 const allClearButton = document.querySelector('[data-all-clear]')
+const changeModeButton = document.querySelector('[data-change-mode]')
 const previousOperandTextElement = document.querySelector('[data-previous-operand]')
 const currentOperandTextElement = document.querySelector('[data-current-operand]')
 
@@ -121,5 +180,10 @@ allClearButton.addEventListener('click', button => {
 
 deleteButton.addEventListener('click', button => {
     calculator.delete()
+    calculator.updateDisplay()
+})
+
+changeModeButton.addEventListener('click', button => {
+    calculator.changeMode()
     calculator.updateDisplay()
 })
